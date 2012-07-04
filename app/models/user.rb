@@ -6,12 +6,12 @@ class User < ActiveRecord::Base
 
   has_secure_password
 
-  before_save { |user|
-    user.email = email.downcase
-    #user.normalised_number = phone_number.strip
-    # Should be creating a user_phone_history entry
-  }
+  #belongs_to :account
+  before_save :create_remember_token
+  before_save { |user| user.email = email.downcase }
+  before_save { |user| user.normalised_number = phone_number || '' }
 
+  #validates :account_id, presence: true
   validates :last_name, presence: true, length: {maximum: 50}
 
   validates :phone_number, presence: true, length: {maximum: 20}
@@ -27,4 +27,14 @@ class User < ActiveRecord::Base
   def name
     "#{first_name} #{last_name}"
   end
+
+  def normalised_number=(value)
+    #  attribute_before_cast? override - strip
+  end
+
+  private
+
+    def create_remember_token
+      self.remember_token = SecureRandom.urlsafe_base64
+    end
 end
